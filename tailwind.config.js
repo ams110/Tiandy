@@ -4,18 +4,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand palette — change here to re-theme the whole site
+        // Brand palette — green matched to the official Tiandy wordmark.
+        // 500 is the bright brand green; 600-900 darken for text/contrast.
         brand: {
-          50: '#e7f6f7',
-          100: '#c2e8ea',
-          200: '#8fd5d9',
-          300: '#54bdc3',
-          400: '#27a3aa',
-          500: '#0e8a92',
-          600: '#0a6f76',
-          700: '#0a585e',
-          800: '#0b474c',
-          900: '#0c3c40',
+          50: '#ecfaec',
+          100: '#d2f4d2',
+          200: '#a6e7a6',
+          300: '#72d672',
+          400: '#4ccb4c',
+          500: '#3dc63d',
+          600: '#2ea82e',
+          700: '#248524',
+          800: '#1f6b1f',
+          900: '#1a571a',
+        },
+        // Brighter green accent for highlights / hover states
+        accent: {
+          400: '#5ad65a',
+          500: '#34c734',
         },
       },
       fontFamily: {
