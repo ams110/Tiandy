@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 import { nav, site } from '../data/content'
+import Logo from './Logo'
 
 export default function Footer() {
   return (
     <footer className="mt-20 border-t border-slate-200 bg-slate-50">
       <div className="container grid gap-8 py-12 md:grid-cols-4">
         <div>
-          <img src="/logo.svg" alt={site.name} className="h-9 w-auto" />
+          <Logo variant="color" className="h-9 w-auto" />
           <p className="mt-3 text-sm text-slate-600">{site.tagline}</p>
         </div>
 

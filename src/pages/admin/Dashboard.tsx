@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import Logo from '../../components/Logo'
 import {
   getAllProductsAdmin,
   getCategories,
@@ -134,7 +135,7 @@ export default function Dashboard() {
       <header className="border-b border-slate-200 bg-white">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="לוגו" className="h-8 w-auto" />
+            <Logo variant="color" className="h-8 w-auto" />
             <span className="text-sm font-bold text-slate-700">לוח ניהול מוצרים</span>
           </div>
           <div className="flex items-center gap-2">
