@@ -192,18 +192,40 @@ export default function Dashboard() {
                 {products.map((p) => (
                   <tr key={p.id} className={p.deleted_at ? 'bg-red-50/40' : ''}>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {p.image_url && (
-                          <img src={p.image_url} alt="" className="h-10 w-10 rounded object-cover" />
-                        )}
-                        <div>
-                          <div className="font-medium text-slate-800">{p.name_he}</div>
-                          <div className="text-xs text-slate-400">{p.slug}</div>
+                      <Link
+                        to={`/products/${p.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 group/row"
+                        title="פתח בדף המוצר באתר"
+                      >
+                        <div className="relative h-10 w-10 shrink-0">
+                          {p.image_url ? (
+                            <img src={p.image_url} alt="" className="h-10 w-10 rounded object-cover" />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded bg-slate-100 text-xs text-slate-400">
+                              אין
+                            </div>
+                          )}
                         </div>
-                      </div>
+                        <div>
+                          <div className="font-medium text-slate-800 group-hover/row:text-brand-600 group-hover/row:underline">
+                            {p.name_he}
+                          </div>
+                          <div className="text-xs text-slate-400">/products/{p.slug}</div>
+                        </div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{catName(p.category_id)}</td>
-                    <td className="px-4 py-3">{p.is_featured ? '★' : '—'}</td>
+                    <td className="px-4 py-3">
+                      {p.is_featured ? (
+                        <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs text-brand-700">
+                          ★ דף הבית
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-xs">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {p.deleted_at ? (
                         <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">מוסר</span>
@@ -213,6 +235,14 @@ export default function Dashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
+                        <Link
+                          to={`/products/${p.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-500 hover:text-brand-600 hover:underline"
+                        >
+                          צפה
+                        </Link>
                         <button onClick={() => openEdit(p)} className="text-brand-600 hover:underline">עריכה</button>
                         {p.deleted_at ? (
                           <button onClick={() => handleRestore(p)} className="text-green-600 hover:underline">שחזור</button>
