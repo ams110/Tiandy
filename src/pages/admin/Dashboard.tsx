@@ -11,9 +11,12 @@ import {
   restoreProduct,
   destroyProduct,
   uploadImage,
+  uploadHeroImage,
+  getSettings,
+  updateSetting,
   type ProductInput,
 } from '../../lib/api'
-import type { Category, Product } from '../../lib/types'
+import type { Category, Product, SiteSettings } from '../../lib/types'
 
 const emptyForm: ProductInput = {
   category_id: null,
@@ -29,6 +32,9 @@ const emptyForm: ProductInput = {
 
 export default function Dashboard() {
   const { signOut } = useAuth()
+  const [tab, setTab] = useState<'products' | 'settings'>('products')
+
+  // ── Products state ──
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,6 +45,12 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+
+  // ── Settings state ──
+  const [settings, setSettings] = useState<SiteSettings>({})
+  const [settingsSaving, setSettingsSaving] = useState(false)
+  const [settingsUploading, setSettingsUploading] = useState(false)
+  const [settingsMsg, setSettingsMsg] = useState('')
 
   async function handleImageFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -69,8 +81,54 @@ export default function Dashboard() {
     }
   }
 
+  async function loadSettings() {
+    try {
+      const s = await getSettings()
+      setSettings(s)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  async function handleHeroImageFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setSettingsMsg('')
+    setSettingsUploading(true)
+    try {
+      const url = await uploadHeroImage(file)
+      await updateSetting('hero_image_url', url)
+      setSettings((s) => ({ ...s, hero_image_url: url }))
+      setSettingsMsg('✓ התמונה עודכנה בהצלחה')
+    } catch (err) {
+      console.error(err)
+      setSettingsMsg('✗ שגיאה בהעלאת התמונה')
+    } finally {
+      setSettingsUploading(false)
+    }
+  }
+
+  async function handleSaveSettings(e: React.FormEvent) {
+    e.preventDefault()
+    setSettingsMsg('')
+    setSettingsSaving(true)
+    try {
+      await Promise.all([
+        updateSetting('hero_title', settings.hero_title ?? ''),
+        updateSetting('hero_subtitle', settings.hero_subtitle ?? ''),
+      ])
+      setSettingsMsg('✓ ההגדרות נשמרו בהצלחה')
+    } catch (err) {
+      console.error(err)
+      setSettingsMsg('✗ שגיאה בשמירה')
+    } finally {
+      setSettingsSaving(false)
+    }
+  }
+
   useEffect(() => {
     load()
+    loadSettings()
   }, [])
 
   function openCreate() {
@@ -154,16 +212,116 @@ export default function Dashboard() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo variant="color" className="h-8 w-auto" />
-            <span className="text-sm font-bold text-slate-700">לוח ניהול מוצרים</span>
+            <span className="text-sm font-bold text-slate-700">לוח ניהול</span>
           </div>
           <div className="flex items-center gap-2">
             <Link to="/" className="btn-ghost text-sm">לאתר</Link>
             <button onClick={signOut} className="btn-outline text-sm">יציאה</button>
           </div>
         </div>
+        {/* Tabs */}
+        <div className="container flex gap-6 border-t border-slate-100">
+          {(['products', 'settings'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`py-3 text-sm font-medium border-b-2 transition ${
+                tab === t
+                  ? 'border-brand-500 text-brand-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {t === 'products' ? 'ניהול מוצרים' : 'הגדרות האתר'}
+            </button>
+          ))}
+        </div>
       </header>
 
       <div className="container py-8">
+
+        {/* ── Settings tab ── */}
+        {tab === 'settings' && (
+          <div className="mx-auto max-w-2xl">
+            <h1 className="mb-6 text-2xl font-extrabold text-slate-900">הגדרות האתר</h1>
+
+            {/* Hero image */}
+            <div className="card mb-6 p-6">
+              <h2 className="mb-4 text-base font-bold text-slate-800">תמונת הכותרת (Hero)</h2>
+              <div className="flex items-start gap-4">
+                <div className="shrink-0">
+                  {settings.hero_image_url ? (
+                    <img
+                      src={settings.hero_image_url}
+                      alt="Hero preview"
+                      className="h-24 w-40 rounded-lg border border-slate-200 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-24 w-40 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs text-slate-400">
+                      אין תמונה
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <label className="btn-outline cursor-pointer text-sm">
+                    {settingsUploading ? 'מעלה…' : '⬆ העלאת תמונה חדשה'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={settingsUploading}
+                      onChange={handleHeroImageFile}
+                    />
+                  </label>
+                  <p className="text-xs text-slate-400">
+                    מומלץ: תמונה רחבה (1600×900 לפחות), JPG או WebP
+                  </p>
+                  <input
+                    dir="ltr"
+                    className="field text-left text-xs"
+                    placeholder="או הדביקו כתובת URL"
+                    value={settings.hero_image_url ?? ''}
+                    onChange={(e) => setSettings((s) => ({ ...s, hero_image_url: e.target.value }))}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Hero text */}
+            <form onSubmit={handleSaveSettings} className="card p-6 space-y-4">
+              <h2 className="text-base font-bold text-slate-800">טקסט הכותרת</h2>
+              <div>
+                <label className="label">כותרת ראשית</label>
+                <input
+                  className="field"
+                  value={settings.hero_title ?? ''}
+                  onChange={(e) => setSettings((s) => ({ ...s, hero_title: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="label">תיאור / כותרת משנה</label>
+                <textarea
+                  rows={3}
+                  className="field"
+                  value={settings.hero_subtitle ?? ''}
+                  onChange={(e) => setSettings((s) => ({ ...s, hero_subtitle: e.target.value }))}
+                />
+              </div>
+              {settingsMsg && (
+                <p className={`text-sm ${settingsMsg.startsWith('✓') ? 'text-green-600' : 'text-red-600'}`}>
+                  {settingsMsg}
+                </p>
+              )}
+              <div className="flex justify-end">
+                <button type="submit" disabled={settingsSaving} className="btn-primary disabled:opacity-60">
+                  {settingsSaving ? 'שומר…' : 'שמירה'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ── Products tab ── */}
+        {tab === 'products' && (<>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900">ניהול מוצרים</h1>
@@ -258,6 +416,7 @@ export default function Dashboard() {
             </table>
           </div>
         )}
+        </>)}
       </div>
 
       {/* Form modal */}
