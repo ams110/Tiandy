@@ -4,7 +4,7 @@ export default function Logo({
   variant?: 'color' | 'white'
   className?: string
 }) {
-  const mainColor = variant === 'white' ? '#ffffff' : '#1a2e4a'
+  const mainColor = variant === 'white' ? '#ffffff' : '#42d229'
 
   return (
     <span className="inline-flex flex-col leading-none select-none">
